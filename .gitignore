@@ -1,6 +1,14 @@
 # IDEAs
-.idea/
-.vscode/
+.idea/*
+.vscode/*
 
 # System files
 **/.DS_Store
+
+# C language files
+**/*.dSYM
+C_lang/Tasks/*.o
+C_lang/Tasks/*.out
+C_lang/Tasks/*.exe
+C_lang/Tasks/*
+!C_lang/Tasks/*.c
