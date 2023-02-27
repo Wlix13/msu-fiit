@@ -5,10 +5,11 @@
 # System files
 **/.DS_Store
 
-# Pascal language files
-Pascal/*/*
+# Pascal compiled files
 !Pascal/**/*.pas
-!Pascal/Laboratory1/report.pdf
+Pascal/Contest*/*
+Pascal/Laboratory*/*
+!Pascal/Laboratory*/report.pdf
 
 # C language files
 **/*.dSYM
