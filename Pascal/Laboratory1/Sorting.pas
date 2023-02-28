@@ -10,6 +10,9 @@ type
     permutations: integer;
   end;
 
+const
+  // Флаг для отладки сортировки
+  DEBUG=True;
 
 var
   arr, shell_arr, select_arr: TArray;
@@ -46,19 +49,6 @@ begin
   end;
 end;
 
-procedure copy_copy(var init, copy_a, copy_b: TArray; N: integer);
-{ Делает копии массива init в переменные copy_a и copy_b }
-var
-  i:integer;
-
-begin
-  for i:=0 to N - 1 do
-    begin
-      copy_a[i] := init[i];
-      copy_b[i] := init[i];
-    end;
-end;
-
 procedure print_array(arr: TArray; N: integer);
 { Выводит массив на экран }
 var
@@ -80,26 +70,42 @@ begin
   // Повторять, пока промежуток не станет нелевым
   while gap > 0 do
   begin
-    // Iterate over the array from gap to N
     // Итерируем по массиву, начиная с промежутка с промежутка 
     for i := gap to N - 1 do
     begin
       // Сравнить элементы, находящиеся на расстоянии друг от друга, и при необходимости поменять их местами
       j := i;
+
+      // Отладка для проверка сравнений функции сортировки
+      if DEBUG then
+      begin
+        writeln('Сравниваем элемент ', arr[j - gap], ' с элементом ', arr[j], ' По промежутку ', gap);
+        writeln('Количество сравнений: ', stats.comparisons + 1); { Добавка + 1 для правильно указания. Ведь в тексте мы уже сделали сравнение }
+      end;
+
+
       while (j >= gap) and (arr[j - gap] > arr[j]) do
       begin
+
+        // Отладка для проверка перестановок функции сортировки
+        if DEBUG then
+        begin
+          writeln('Меняем элемент ', arr[j - gap], ' с элементом ', arr[j], ' По промежутку ', gap);
+          writeln('Количество перестановок: ', stats.permutations + 1); { Добавка + 1 для правильно указания. Ведь в тексте мы уже сделали перестановоку }
+        end;
+
         // Поменять элементы местами
         temp := arr[j];
         arr[j] := arr[j - gap];
         arr[j - gap] := temp;
-        
+
         // Увеличение числа перестановок
         stats.permutations := stats.permutations + 1;
         
         // Переход к следующим элементам
         j := j - gap;
       end;
-      
+
       // Увеличение числа сравнений
       stats.comparisons := stats.comparisons + 1;
     end;
@@ -120,6 +126,14 @@ begin
     // Найти минимальный элемент в несортированной части массива
     for j := i + 1 to N - 1 do
     begin
+
+      // Отладка для проверка сравнений функции сортировки
+      if DEBUG then
+      begin
+        writeln('Сравниваем элемент ', arr[j], ' с элементом ', arr[min_idx]);
+        writeln('Количество сравнений: ', stats.comparisons + 1); { Добавка + 1 для правильно указания. Ведь в тексте мы уже сделали сравнение }
+      end;
+  
       // Увеличить счетчик сравнения
       stats.comparisons := stats.comparisons + 1;
 
@@ -130,6 +144,14 @@ begin
     // Поменять местами минимальный элемент с первым элементом несортированной части
     if min_idx <> i then
     begin
+
+      // Отладка для проверка перестановок функции сортировки
+      if DEBUG then
+      begin
+        writeln('Меняем элемент ', arr[i], ' с элементом ', arr[min_idx]);
+        writeln('Количество перестановок: ', stats.permutations + 1); { Добавка + 1 для правильно указания. Ведь в тексте мы уже сделали перестановоку }
+      end;
+
       temp := arr[i];
       arr[i] := arr[min_idx];
       arr[min_idx] := temp;
@@ -143,23 +165,24 @@ end;
 
 begin
   // Ввод размера массива
-  readln(N);
+  write('Введите размер массива: ');
+  read(N);
 
-  // Запуск генератора случайных чисел
-  randomize;
-
-  // Сгенерировать массив случайных целых чисел по неубыванию
+  // Сгенерировать массив случайных целых чисел
   generate_array(arr, N, 'D');
 
   // Сделать копии исходного массива для проверки алгоритмов
-  copy_copy(arr, shell_arr, select_arr, N);
+  shell_arr:=arr;
+  select_arr:=arr;
 
   // Выведите исходный массив
   write('Исходный массив: ');
   print_array(arr, N);
   writeln;
 
-  // Отсортировать массив, используя ShellSort алгоритм
+  // Отсортировать массив, используя ShellSort алгоритмъ
+  if DEBUG then
+    writeln('Отладка для метода Шелла:');
   ShellSort(shell_arr, N, shell);
 
   // Выведите сортированный ShellSort массив
@@ -174,13 +197,15 @@ begin
   writeln;
 
   // Отсортировать массив, используя SelectionSort алгоритм
+  if DEBUG then
+    writeln('Отладка для метода простого выбора:');
   SelectionSort(select_arr, N, select);
 
   // Выведите сортированный SelectionSort массив
   write('SelectionSort массив: ');
   print_array(select_arr, N);
 
-  // Вывести количество сравнений и перестановок при SelectionSort сортировке
+  // Вывести количество сравнений и перестановок при SelectionSort сортировкеoi
   write('Сравнений в SelectionSort: ', select.comparisons);
   writeln;
   write('Перестановок в SelectionSort: ', select.permutations);
