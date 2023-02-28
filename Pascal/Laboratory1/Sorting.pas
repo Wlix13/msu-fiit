@@ -2,6 +2,7 @@ program Lab_sorting;
 
 const
   ARRAY_SIZE = 1000;
+  DEBUG=True; { Флаг для отладки сортировки }
 
 type
   TArray = array[0..ARRAY_SIZE] of integer;
@@ -9,10 +10,6 @@ type
     comparisons: integer;
     permutations: integer;
   end;
-
-const
-  // Флаг для отладки сортировки
-  DEBUG=True;
 
 var
   arr, shell_arr, select_arr: TArray;
@@ -29,6 +26,7 @@ procedure generate_array(var arr: TArray; N: integer; order: char);
 var
   i: integer;
 begin
+  // Активировать генератор случайных чисел
   Randomize;
   case order of
     'A', 'a': // Ascending order
@@ -54,7 +52,7 @@ procedure print_array(arr: TArray; N: integer);
 var
   i: integer;
 begin
-  for i := 0 to N-1 do
+  for i := 0 to N - 1 do
     write(arr[i], ' ');
   writeln;
 end;
