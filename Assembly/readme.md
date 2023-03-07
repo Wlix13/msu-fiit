@@ -781,3 +781,155 @@ ge:
   xor eax, eax
   ret
 ```
+
+# <a name="lect6_1"></a>Реализация циклов - [↑](#contents)
+
+### Цикл while
+```nasm
+cycle:
+  cmp dword [x], 0
+  jle cycle_end   ; x <= 0
+                  ; реализация S
+  ...
+  jmp cycle
+cycle_end:
+
+```
+### Цикл repeat
+```nasm
+cycle:
+                   ; реализация S
+  ...
+  cmp dword [x], 0
+  jle cycle        ; x <= 0
+```
+**_Пример_**: вычисление суммы цифр числа
+```nasm
+%include 'io.inc'
+section .text
+global CMAIN
+CMAIN:
+; n >= 0 
+GET_UDEC 4, eax; ввод n
+mov ecx, 0; s := 0
+mov ebx, 10
+cycle:
+cmp eax, 0
+je cycle_end; n = 0
+mov edx, 0; расширили n для деления
+div ebx ; eax = n / 10, edx = n % 10
+add ecx, edx; s := s + цифра
+jmp cycle
+cycle_end:
+```
+
+### Циклы с заранее известным числом повторений. Команда loop
+```nasm
+loop <метка>
+  ; ecx := ecx – 1
+  ; if ecx <> 0 then goto <метка>
+  - Флаги не меняет
+  - Реализует короткий переход
+```
+**_Пример_**: вычисление факториала
+```nasm
+%include 'io.inc'
+section .text
+global CMAIN
+CMAIN:
+                    ; n! = n * (n - 1) * … * 2 * 1, n >= 0
+  GET_UDEC 4, ecx   ; ввод n
+  mov eax, 1        ; n!
+  jecxz fin         ; если n = 0
+cycle:
+  imul eax, ecx
+  loop cycle
+fin:
+  PRINT_UDEC 4, eax ; вывод n!
+  NEWLINE
+  mov eax, 0
+  ret
+```
+
+### Реализация вложенных циклов с помощью команды loop
+```Pascal
+{n > 0, m >0}
+for i := n downto 1 do
+  for j := m downto 1 do S
+```
+
+```nasm
+  mov ecx, n
+extr_cycle:
+  mov edx, ecx    ; запомнить ecx для внешнего цикла
+  mov ecx, m
+int_cycle:
+  ...             ; реализация S
+  loop int_cycle
+  mov ecx, edx    ; восстановить ecx для внешнего цикла
+  loop extr_cycle
+```
+**_Пример_**: Подсчет количества двузначных чисел, не содержащих одинаковых цифр (деление не использовать)
+```nasm
+  mov ebx, 0    ; n := 0
+  mov ecx, 9
+extr_cycle:
+  mov edx, ecx  ; edx – старшая цифра
+  mov ecx, 10
+int_cycle:
+  mov eax, ecx
+  dec eax       ; eax – младшая цифра
+  cmp edx, eax
+  je eq         ; цифры равны
+  inc ebx       ; n := n + 1
+eq:
+  loop int_cycle
+  mov ecx, edx
+  loop extr_cycle
+```
+
+# <a name="lect6_2"></a>Операторы для циклов - [↑](#contents)
+
+### Использование оператора break
+* реализует досрочный выход из цикла
+* _Пример_: найти первый отрицательный элемент в последовательности из n элементов (в eax)
+```C
+for (int i =1; i <= n; i++ ) {
+scanf(“%d”, &x);
+if (x < 0) break;
+}
+```
+
+```nasm
+  mov ecx, n
+beg:
+  GET_DEC 4, eax ; x
+  cmp eax, 0
+  jl exit        ; x < 0
+  loop beg
+exit:
+```
+
+### Использование оператора continue
+* реализует досрочный переход к следующей итерации цикла
+* _Пример_: обработка только положительных чисел в последовательности из n элементов (остальные пропускаются)
+
+```C
+for (int i =1; i <= n; i++ ) {
+scanf(“%d”, &x);
+if (x <= 0) 
+  continue; /* пропускаем числа <= 0 */
+... /* обработка положительных чисел */
+}
+```
+
+```nasm
+mov ecx, n
+beg:
+  GET_DEC 4, eax ; x
+  cmp eax, 0
+  jle next       ; x <= 0
+  . . .          ; обработка чисел > 0
+next:
+  loop beg
+```
