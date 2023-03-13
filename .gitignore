@@ -17,8 +17,8 @@ C_lang/Tasks/*
 **/*.dSYM
 
 # Assembly compiled files
-!Assembly/**/*.asm
 Assembly/Tasks/*
+!Assembly/**/*.asm
 
 # Compiled files
 **/*.o
