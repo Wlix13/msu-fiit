@@ -12,9 +12,13 @@ Pascal/Laboratory*/*
 !Pascal/Laboratory*/report.pdf
 
 # C language files
-**/*.dSYM
-C_lang/Tasks/*
 !C_lang/Tasks/*.c
+C_lang/Tasks/*
+**/*.dSYM
+
+# Assembly compiled files
+!Assembly/**/*.asm
+Assembly/Tasks/*
 
 # Compiled files
 **/*.o
