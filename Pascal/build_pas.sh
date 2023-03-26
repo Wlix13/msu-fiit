@@ -12,14 +12,18 @@ if [ $name = $1 ]; then
     exit
 fi
 
-fpc -O1 -gh $name.pas
-if [ $? -ne 0 ]; then
-    exit
+if [ ! -d "/data/build" ]; then
+    mkdir /data/build
 fi
-rm $name.o
 
-echo "Running your code $name.pas:"
-./$name
+# Compile the Pascal file
+fpc -O1 -gh $name.pas -o /data/build/$name
 if [ $? -ne 0 ]; then
     exit
 fi
+
+rm /data/build/$name.o
+
+# Run the program
+echo -e "\nRunning $name:\n"
+/data/build/$name

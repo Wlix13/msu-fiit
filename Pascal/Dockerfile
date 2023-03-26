@@ -1,11 +1,13 @@
-FROM ubuntu:23.04
+FROM ubuntu:lunar
 ENV DEBIAN_FRONTEND noninteractive
+ENV TZ=Europe/Moscow
+
 
 RUN apt update && \
-    apt install gcc fpc -y && \
+    apt install gcc fpc vim -y && \
     rm -rf /var/lib/apt/lists/*
 
-COPY ./build_pas.sh /usr/bin/build_pas
-RUN chmod +x /usr/bin/build_pas
+COPY ./build_pas.sh /usr/bin/build
+RUN chmod +x /usr/bin/build
 
 WORKDIR /data
