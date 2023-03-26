@@ -48,7 +48,7 @@ echo 'FILE *get_stdin(void) { return stdin; }' >> $c_temp
 echo 'FILE *get_stdout(void) { return stdout; }' >> $c_temp
 
 gcc -x c $c_temp -c -g -o $o_temp -m32
-nasm -g -i/usr/lib/gcc/ -f $objformat $1 -o $name.o -D$systype
+nasm -Wall -g -i/usr/lib/gcc/ -f $objformat $1 -o $name.o -D$systype
 if [ $? -ne 0 ]; then
     rm -f $c_temp $o_temp $name.o
     exit
