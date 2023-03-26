@@ -3,24 +3,10 @@
 .vscode/*
 
 # System files
-**/.DS_Store
+.DS_Store
 
-# Pascal compiled files
-!Pascal/**/*.pas
-Pascal/Contest*/*
-Pascal/Laboratory*/*
-!Pascal/Laboratory*/report.pdf
-
-# C language files
-C_lang/Tasks/*
-!C_lang/Tasks/*.c
-**/*.dSYM
-
-# Assembly compiled files
-Assembly/Tasks/*
-!Assembly/**/*.asm
+# Thumbnails
+._*
 
 # Compiled files
-**/*.o
-**/*.out
-**/*.exe
+**/build
