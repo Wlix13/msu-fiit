@@ -24,6 +24,7 @@ if [ $? -ne 0 ]; then
     exit
 fi
 
+# Determine the system type
 case $(echo $osname | tr [:upper:] [:lower:]) in
 *cygwin*)
     systype=CYGWIN
@@ -43,16 +44,31 @@ case $(echo $osname | tr [:upper:] [:lower:]) in
     ;;
 esac
 
+# Compile the C file for io.inc
 echo '#include <stdio.h>' >> $c_temp
 echo 'FILE *get_stdin(void) { return stdin; }' >> $c_temp
 echo 'FILE *get_stdout(void) { return stdout; }' >> $c_temp
-
 gcc -x c $c_temp -c -g -o $o_temp -m32
-nasm -Wall -g -i/usr/lib/gcc/ -f $objformat $1 -o $name.o -D$systype
+
+if [ ! -d "/data/build" ]; then
+    mkdir /data/build
+fi
+
+# Compile the assembly file
+nasm -Wall -g -i/usr/lib/gcc/ -f $objformat $1 -o /data/build/$name.o -D$systype
 if [ $? -ne 0 ]; then
-    rm -f $c_temp $o_temp $name.o
+    rm -f $c_temp $o_temp /data/build/$name.o
     exit
 fi
 
-gcc $name.o $o_temp -g -o $name -m32
-rm -f $c_temp $o_temp $name.o
+# Link the object files
+gcc /data/build/$name.o $o_temp -g -o /data/build/$name -m32
+rm -f $c_temp $o_temp /data/build/$name.o
+
+if [ $? -ne 0 ]; then
+    exit
+fi
+
+# Run the program
+echo -e "\nRunning $name:\n"
+/data/build/$name

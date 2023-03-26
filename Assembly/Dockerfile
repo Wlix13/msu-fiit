@@ -6,7 +6,10 @@ RUN apt update && \
     apt install gcc gcc-multilib vim nasm -y && \
     rm -rf /var/lib/apt/lists/*
 
-COPY ./build_asm.sh /usr/bin/build_asm
+COPY ./build_asm.sh /usr/bin/build
+RUN chmod +x /usr/bin/build
+
 COPY ./io32.inc /usr/lib/gcc/io.inc
 COPY ./io64.inc /usr/lib/gcc/io64.inc
-RUN chmod +x /usr/bin/build_asm
+
+WORKDIR /data
