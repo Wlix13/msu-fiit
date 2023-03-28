@@ -55,7 +55,7 @@ if [ ! -d "/data/build" ]; then
 fi
 
 # Compile the assembly file
-nasm -Wall -g -i/usr/lib/gcc/ -f $objformat $1 -o /data/build/$name.o -D$systype
+nasm -W+all -g -i/usr/lib/gcc/ -f $objformat $1 -o /data/build/$name.o -D$systype
 if [ $? -ne 0 ]; then
     rm -f $c_temp $o_temp /data/build/$name.o
     exit
