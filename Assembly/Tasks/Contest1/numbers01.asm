@@ -38,7 +38,6 @@ count:
     inc ecx                 ; увеличиваем счетчик
     jmp loop                ; продолжаем цикл
 loop_end:
-    mov dword[number], ecx  ; сохраняем счетчик в number
-    PRINT_DEC 4, [number]   ; выводим результат
+    PRINT_DEC 4, ecx   ; выводим результат
     xor eax, eax
     ret

@@ -47,8 +47,7 @@ cycle_less:
     je flag_less            ; если флаг 1, то меняем флаг на меньше
     jmp cycle               ; если флаг меньше, то переходим к следующему числу
 cycle_end:
-    mov dword[number], ecx  ; записываем счетчик смен знака в number
-    PRINT_DEC 4, [number]   ; выводим number
+    PRINT_DEC 4, ecx   ; выводим number
     xor eax, eax
     ret
 end:
