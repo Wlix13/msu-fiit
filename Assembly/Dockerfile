@@ -1,6 +1,6 @@
-FROM ubuntu:lunar
-ENV DEBIAN_FRONTEND noninteractive
-ENV TZ=Europe/Moscow
+FROM --platform=linux/x86_64 ubuntu:lunar
+ENV DEBIAN_FRONTEND noninteractive \
+    TZ=Europe/Moscow
 
 RUN apt update && \
     apt install gcc gcc-multilib vim nasm -y && \
