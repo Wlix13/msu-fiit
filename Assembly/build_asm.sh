@@ -39,7 +39,7 @@ case $(echo $osname | tr [:upper:] [:lower:]) in
     objformat=macho32
     ;;
 *)
-    echo "Not supported OS $osname"
+    echo "Not supported OS: $osname"
     exit 1
     ;;
 esac
@@ -48,14 +48,14 @@ esac
 echo '#include <stdio.h>' >> $c_temp
 echo 'FILE *get_stdin(void) { return stdin; }' >> $c_temp
 echo 'FILE *get_stdout(void) { return stdout; }' >> $c_temp
-gcc -x c $c_temp -c -g -o $o_temp -m32
+gcc -c -x c -m32 -g $c_temp -o $o_temp 
 
 if [ ! -d "/data/build" ]; then
     mkdir /data/build
 fi
 
 # Compile the assembly file
-nasm -W+all -g -i/usr/lib/gcc/ -f $objformat $1 -o /data/build/$name.o -D$systype
+nasm -W+all -g -i/usr/lib/gcc/ -f $objformat -D$systype $1 -o /data/build/$name.o
 if [ $? -ne 0 ]; then
     rm -f $c_temp $o_temp /data/build/$name.o
     exit

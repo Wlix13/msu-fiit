@@ -3,7 +3,7 @@ ENV DEBIAN_FRONTEND noninteractive \
     TZ=Europe/Moscow
 
 RUN apt update && \
-    apt install gcc gcc-multilib vim nasm -y && \
+    apt install gcc gcc-multilib vim nasm build-essential -y && \
     rm -rf /var/lib/apt/lists/*
 
 COPY ./build_asm.sh /usr/bin/build
