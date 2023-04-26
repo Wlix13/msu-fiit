@@ -25,6 +25,4 @@ int main() {
     printf("Derived string:\n%s\n", rule2(str));
     return 0;
   }
-
-  return 0;
 }

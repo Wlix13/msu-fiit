@@ -5,5 +5,5 @@ lib.o: lib.asm
 main: main.c lib.h lib.o
 	gcc -Wall -m32 main.c lib.o -o main
 run: main
-	/data/build/main
+	./main
 	
