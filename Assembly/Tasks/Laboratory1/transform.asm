@@ -26,6 +26,7 @@ rule1:
         pop ebp                         ; функции
         ret
 
+
 rule2:
     push ebp                            ; Пролог
     mov ebp, esp                        ; функции
