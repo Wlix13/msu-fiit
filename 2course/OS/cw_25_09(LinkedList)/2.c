@@ -19,19 +19,19 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (!(temp = fopen("_write_temp_", "w+"))) {
+  if ((temp = fopen("_write_temp.txt", "w")) == NULL) {
     fprintf(stderr, "Cannot open temporary work file.\n\n");
   }
 
   while ((c = fgetc(ffrom1)) != EOF) {
     if (c != argv[2][0]) {
-      fputs(c, temp);
+      fputs(&c, temp);
     }
   }
 
   fclose(ffrom1);
   fclose(temp);
   remove(argv[1]);
-  rename("write_temp_", argv[1]);
+  rename("_write_temp.txt", argv[1]);
   return 0;
 }
