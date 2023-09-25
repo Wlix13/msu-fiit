@@ -5,14 +5,14 @@
 #define _list_h_
 
 typedef struct Node {
-  char *word;
-  int length;
-  struct Node *next;
+    char *word;
+    int length;
+    struct Node *next;
 } Node;
 
 typedef struct Temp {
-  char letter;
-  struct Temp *next;
+    char letter;
+    struct Temp *next;
 } Temp;
 
 Node *createNode(char *, int);

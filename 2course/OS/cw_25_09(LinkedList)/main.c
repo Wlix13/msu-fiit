@@ -19,33 +19,33 @@ realloc() (и функцией ввода из дз-1) при вводе стр�
 #include <stdio.h>
 
 int main() {
-  char c;
-  Node *head = NULL;
-  Temp *tempHead = NULL;
+    char c;
+    Node *head = NULL;
+    Temp *tempHead = NULL;
 
-  while ((c = getchar()) != '\n' && c != EOF) {
-    if (c == ' ') {
-      if (tempHead != NULL) {
+    while ((c = getchar()) != '\n' && c != EOF) {
+        if (c == ' ') {
+            if (tempHead != NULL) {
+                convertTempToNode(&head, &tempHead);
+                tempHead = NULL;
+            }
+        } else
+            tempHead = appendTemp(tempHead, c);
+    }
+
+    // Add last word
+    if (tempHead != NULL)
         convertTempToNode(&head, &tempHead);
-        tempHead = NULL;
-      }
-    } else
-      tempHead = appendTemp(tempHead, c);
-  }
 
-  // Add last word
-  if (tempHead != NULL)
-    convertTempToNode(&head, &tempHead);
+    printf("List:\n");
+    printList(head);
 
-  printf("List:\n");
-  printList(head);
+    printf("Sorted list:\n");
+    MergeSort(&head);
+    printList(head);
 
-  printf("Sorted list:\n");
-  MergeSort(&head);
-  printList(head);
+    freeList(&head);
+    freeTemp(&tempHead);
 
-  freeList(&head);
-  freeTemp(&tempHead);
-
-  return 0;
+    return 0;
 }
