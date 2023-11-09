@@ -19,14 +19,13 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  pid_t pid1, pid2;
   int fd[2];
   if (pipe(fd) == -1) {
     perror("pipe");
     exit(1);
   }
 
-  if ((pid1 = fork()) == 0) {
+  if (fork() == 0) {
     close(fd[0]); // Close unused read
     dup2(fd[1], 1);
     close(fd[1]);
@@ -35,7 +34,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  if ((pid2 = fork()) == 0) {
+  if (fork() == 0) {
     close(fd[1]); // Close unused write
     dup2(fd[0], 0);
     close(fd[0]);

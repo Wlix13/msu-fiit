@@ -24,18 +24,12 @@ int main(int argc, char *argv[]) {
            argv[i], strlen(argv[i]), argv[i][strlen(argv[i]) - 1],
            count_spaces(argv[i]));
   }
-  return 0;
-}
 
-/*
-Написать программу, которая распечатывает аргументы своей командной строки,
-(одновременно)содержащие символ x и оканчивающиеся символом t.
-*/
+  /*
+  Написать программу, которая распечатывает аргументы своей командной строки,
+  (одновременно)содержащие символ x и оканчивающиеся символом t.
+  */
 
-#include <stdio.h>
-#include <string.h>
-
-int main(int argc, char *argv[]) {
   for (int i = 1; i < argc; i++) {
     if (strchr(argv[i], 'x') && argv[i][strlen(argv[i]) - 1] == 't')
       printf("%s\n", argv[i]);

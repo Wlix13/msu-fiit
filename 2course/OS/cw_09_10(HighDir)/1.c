@@ -29,8 +29,8 @@ void genBin(char *filename, int N) {
 
   srand(time(NULL));
   for (int i = 0; i < N; i++) {
-    int num = rand() % 100;
-    if (rand() % 2) {
+    int num = arc4random() % 100;
+    if (arc4random() % 2) {
       num *= -1;
     }
     write(fdBin, &num, sizeof(int));

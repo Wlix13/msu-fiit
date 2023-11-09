@@ -16,7 +16,7 @@ int main(int arg, char *argv[]) {
   pipe(fd1);
   pipe(fd2);
 
-  if ((pid = fork()) == 0) {
+  if ((fork()) == 0) {
     close(fd1[1]);
     while (read(fd1[0], buf, MAX_LEN) > 0) {
       // Somet func to process string

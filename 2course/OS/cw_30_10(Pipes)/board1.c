@@ -11,11 +11,11 @@
 int main(int arg, char *argv[]) {
   int fd[2];
   int status;
-  pid_t pid_l, pid_r, pid_1, pid_2;
+  pid_t pid_1, pid_2;
 
   pipe(fd);
 
-  if ((pid_l = fork()) == 0) {
+  if ((fork()) == 0) {
     if ((pid_1 = fork()) == 0) {
       // cmd1 input from file
       int fd1 = open(argv[2], O_RDONLY);
@@ -38,7 +38,7 @@ int main(int arg, char *argv[]) {
       exit(1);
 
     // cmd2 output to pipe
-    if ((pid_2 = fork()) == 0) {
+    if ((fork()) == 0) {
       close(fd[0]);
       dup2(fd[1], 1);
       close(fd[1]);
@@ -50,7 +50,7 @@ int main(int arg, char *argv[]) {
 
     exit(0);
   }
-  if ((pid_r = fork()) == 0) {
+  if ((fork()) == 0) {
     // cmd3 input from pipe
     close(fd[1]);
     dup2(fd[0], 0);

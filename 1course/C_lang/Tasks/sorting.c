@@ -43,17 +43,17 @@ void array_gen(int *a, int n, int type) {
   switch (type) {
   // Pseudo-random array with ascending order
   case 1:
-    a[0] = rand() % 100;
+    a[0] = arc4random() % 100;
     for (i = 1; i < n; i++) {
-      a[i] = a[i - 1] + rand() % 100;
+      a[i] = a[i - 1] + arc4random() % 100;
     }
     break;
 
   // Pseudo-random array with descending order
   case 2:
-    a[0] = rand() % 100;
+    a[0] = arc4random() % 100;
     for (i = 1; i < n; i++) {
-      int t = rand() % 100;
+      int t = arc4random() % 100;
       // printf("%d", t);
       a[i] = a[i - 1] - t;
     }
@@ -70,7 +70,7 @@ void array_gen(int *a, int n, int type) {
   case 4:
   case 5:
     for (i = 0; i < n; i++) {
-      a[i] = rand() % 100;
+      a[i] = arc4random() % 100;
     }
     break;
 

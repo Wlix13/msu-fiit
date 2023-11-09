@@ -17,7 +17,7 @@
 int main(int argc, char *argv[]) {
   DIR *dir;
   struct dirent *entry;
-  struct stat *statbuff;
+  struct stat *statbuff = malloc(sizeof(struct stat));
   char *dir_name;
 
   if (argc == 1) {
@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  free(statbuff);
   closedir(dir);
   return 0;
 }

@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   fd = open(argv[1], O_RDWR);
-  if (fd = -1) {
+  if (fd == -1) {
     printf("Ошибка при открытии файла\n");
     exit(1);
   }
@@ -29,13 +29,13 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   buf = (char *)malloc(N);
-  while (M = read(fd, buf, N)) {
+  while ((M = read(fd, buf, N))) {
     write(fd_tmp, buf, M);
     write(fd_tmp, buf, M);
   }
   lseek(fd_tmp, 0, SEEK_SET);
   lseek(fd, 0, SEEK_SET);
-  while (M = read(fd_tmp, buf, N)) {
+  while ((M = read(fd_tmp, buf, N))) {
     write(fd, buf, M);
   }
   close(fd);

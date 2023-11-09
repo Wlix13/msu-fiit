@@ -88,7 +88,15 @@ char *inputString() {
   }
   str[len++] = '\0';
 
-  return realloc(str, len);
+  char *tmp = realloc(str, len);
+  if (tmp == NULL) {
+    free(str);
+    return NULL;
+  } else {
+    str = tmp;
+  }
+
+  return str;
 }
 
 int main() {

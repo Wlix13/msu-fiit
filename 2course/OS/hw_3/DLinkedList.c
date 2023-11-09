@@ -48,7 +48,15 @@ char *inputString() {
   }
   str[len++] = '\0';
 
-  return realloc(str, len);
+  char *tmp = realloc(str, len);
+  if (tmp == NULL) {
+    free(str);
+    return NULL;
+  } else {
+    str = tmp;
+  }
+
+  return str;
 }
 
 DoublyLinkedList *createList() {
@@ -195,8 +203,8 @@ int main() {
   }
 
   // Summon flying menu
-  int choice;
-  do {
+  int choice = 1;
+  while (choice != 0) {
     printf("\nMenu:\n");
     printf("1. Print list\n");
     printf("2. Delete node by index\n");
@@ -208,8 +216,7 @@ int main() {
     if (choice >= 1 && choice <= 3) {
       functions[choice - 1](head);
     }
-
-  } while (choice != 0);
+  };
 
   freeList(head);
 

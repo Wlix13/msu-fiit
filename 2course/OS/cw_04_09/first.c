@@ -53,14 +53,14 @@ int main(int argc, char *argv[]) {
 
   for (int i = 1; i < argc; i++) {
     char *endptr;
-    double num = strtod(argv[i], &endptr);
+    strtod(argv[i], &endptr);
     if (*endptr != '\0') {
       MAX_LEN += strlen(argv[i]);
     }
   }
 
   double sum = 0;
-  char *str = malloc(MAX_LEN * sizeof(char));
+  char *str = malloc((MAX_LEN + 1) * sizeof(char));
   str[0] = '\0';
 
   for (int i = 1; i < argc; i++) {

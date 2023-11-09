@@ -4,20 +4,20 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 int main() {
   int fd[2];
   pipe(fd);
-  pid_t p1, p2;
 
-  if ((p1 = fork()) == 0) {
+  if (fork() == 0) {
     close(fd[0]);
     dup2(fd[1], 1);
     close(fd[1]);
     execlp("ls", "ls", "-lR", NULL);
     perror("ls");
     exit(1);
-  } else if ((p2 = fork()) == 0) {
+  } else if (fork() == 0) {
     close(fd[1]);
     dup2(fd[0], 0);
     close(fd[0]);
