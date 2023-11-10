@@ -1,0 +1,10 @@
+file2_1tline
+file2_2line
+file2_3line
+file2_4thline
+file2_5thline
+file2_6thline
+file2_7thline
+file2_8thline
+file2_9thline
+ENDFILE2
