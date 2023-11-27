@@ -136,6 +136,50 @@ void deleteDocument(mongoc_collection_t *collection, const char *id) {
   bson_destroy(query);
 }
 
+char *wordSmallestFactor(mongoc_collection_t *collection) {
+  char *word = NULL;
+  const char *id = NULL;
+  double factor = 0.0;
+  const bson_t *doc;
+  bson_t *query, *opts;
+  bson_iter_t iter;
+  mongoc_cursor_t *cursor;
+
+  // Create an empty query
+  query = bson_new();
+
+  // Create query options with sorting by 'factor' in ascending order
+  opts = BCON_NEW("sort", "{", "factor", BCON_DOUBLE(1), "}");
+
+  // Execute the query with options
+  cursor = mongoc_collection_find_with_opts(collection, query, opts, NULL);
+
+  // Retrieve the first document
+  if (mongoc_cursor_next(cursor, &doc)) {
+    bson_iter_init(&iter, doc);
+    if (bson_iter_find(&iter, "word") && BSON_ITER_HOLDS_UTF8(&iter)) {
+      word = strdup(bson_iter_utf8(&iter, NULL)); // Duplicate the string
+      bson_iter_init(&iter, doc);
+      bson_iter_find(&iter, "_id");
+      id = bson_iter_utf8(&iter, NULL);
+      bson_iter_init(&iter, doc);
+      bson_iter_find(&iter, "factor");
+      factor = bson_iter_double(&iter);
+      insertUpdateDocument(collection, id, word, factor + 1.0);
+    }
+  } else {
+    fprintf(stderr, "Document does not contain 'word' field\n");
+    return NULL;
+  }
+
+  // Clean up
+  bson_destroy(query);
+  bson_destroy(opts);
+  mongoc_cursor_destroy(cursor);
+
+  return word;
+}
+
 int main(int argc, char const *argv[]) {
   // MongoDB URI connection string
   const char *uriString = "mongodb://127.0.0.1:27017";
@@ -152,11 +196,12 @@ int main(int argc, char const *argv[]) {
   }
 
   // Call the function to insert document
-  if (argc > 3) {
-    insertUpdateDocument(collection, argv[1], argv[2], strtod(argv[3], NULL));
-  } else {
-    fprintf(stderr, "Not enough arguments\n");
-  }
+  // if (argc > 3) {
+  //   insertUpdateDocument(collection, argv[1], argv[2], strtod(argv[3],
+  //   NULL));
+  // } else {
+  //   fprintf(stderr, "Not enough arguments\n");
+  // }
 
   // Call the function to get document
   // if (argc > 1) {
@@ -172,8 +217,13 @@ int main(int argc, char const *argv[]) {
   // fprintf(stderr, "Not enough arguments\n");
   // }
 
+  // Get word
+  const char *word = wordSmallestFactor(collection);
+  printf("%s\n", word);
+
   // Clean up
   closeConnection(client, database, collection);
+  free((void *)word);
 
   return 1;
 }

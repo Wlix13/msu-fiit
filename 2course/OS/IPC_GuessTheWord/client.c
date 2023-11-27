@@ -1,9 +1,34 @@
+/*
+Клиент отправляет серверу или букву, или слово. Сервер отвечает, в каких
+позициях в слове находится эта буква или слово. Если клиент угадал слово,
+сервер отвечает об этом и закрывает соединение.
+*/
+
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
+void work(int socket) {
+  while (1) {
+    char buffer[1024] = {0};
+
+    scanf("%s", buffer);
+    send(socket, buffer, strlen(buffer), 0);
+
+    int valread = read(socket, buffer, 1024);
+    if (valread == 0) {
+      break;
+    }
+
+    printf("Message from server: %s\n", buffer);
+    if (strcmp(buffer, "You won!") == 0) {
+      break;
+    }
+  }
+}
 
 int main(int argc, char *argv[]) {
   if (argc != 3) {
@@ -20,8 +45,6 @@ int main(int argc, char *argv[]) {
 
   int sock = 0;
   struct sockaddr_in serv_addr;
-  char *message = "Hello from client";
-  char buffer[1024] = {0};
 
   // Create a socket
   if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -44,13 +67,7 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  // Send a message to the server
-  send(sock, message, strlen(message), 0);
-  printf("Message sent\n");
-
-  // Receive a response from the server
-  read(sock, buffer, 1024);
-  printf("Message from server: %s\n", buffer);
+  work(sock);
 
   // Close the socket
   close(sock);

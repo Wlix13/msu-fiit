@@ -55,4 +55,12 @@ void getDocument(mongoc_collection_t *collection, const char *id);
  */
 void deleteDocument(mongoc_collection_t *collection, const char *id);
 
+/*
+ * This function gets the document with the smallest factor from a collection
+ * and increments its factor by 1.
+ * The function takes the following parameters:
+ * - collection: A mongoc_collection_t struct representing collection
+ */
+char *wordSmallestFactor(mongoc_collection_t *collection);
+
 #endif
