@@ -1,26 +1,26 @@
 CC=gcc
-CFLAGS=-Wall 
-INCLUDEFLAGS=-lmongoc-1.0 -lbson-1.0
-
+CFLAGS=-Wall -Wextra
+BUILD_DIR = ./build
+INCLUDE_CMD = `pkg-config --cflags --libs libmongoc-1.0`
 UNAME := $(shell uname)
 
 all: server client
 
+driver:
 ifeq ($(UNAME), Darwin)
-	# macOS specific commands
-	mongo: mongo.c
-		$(CC) $(CFLAGS) -c mongo.c -o mongo.o $(pkg-config --cflags --libs libmongoc-1.0)m
+	brew install mongo-c-driver
 else
-	# Linux specific commands
-	mongo: mongo.c
-		$(CC) $(CFLAGS) -c mongo.c -o mongo.o $(INCLUDEFLAGS)
+	sudo apt install libmongoc-dev
 endif
+	mkdir -p $(BUILD_DIR)
 
-server: server.c
-	$(CC) $(CFLAGS) server.c -o server
+mongo: mongo.c
+	$(CC) $(CFLAGS) -c mongo.c -o $(BUILD_DIR)/mongo.o $(INCLUDE_CMD)
+server: server.c mongo
+	$(CC) $(CFLAGS) server.c mongo.o -o $(BUILD_DIR)/server $(INCLUDE_CMD)
 
 client: client.c
-	$(CC) $(CFLAGS) client.c -o client
+	$(CC) $(CFLAGS) client.c -o $(BUILD_DIR)/client
 
 run_server:
 	./server 50000
