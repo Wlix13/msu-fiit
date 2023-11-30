@@ -12,20 +12,48 @@
 #include <unistd.h>
 
 void work(int socket) {
-  while (1) {
-    char buffer[1024] = {0};
+  char buffer[1024] = {0};
 
+  // Server sends a hello message
+  int valread = read(socket, buffer, 1024);
+  if (valread == 0) {
+    return;
+  }
+  printf("%s\n", buffer);
+
+  // Send a start message
+  scanf("%s", buffer);
+  send(socket, buffer, strlen(buffer), 0);
+
+  // Print response and word length
+  valread = read(socket, buffer, 1024);
+  if (valread == 0) {
+    return;
+  }
+  printf("%s\n", buffer);
+  valread = read(socket, buffer, 1024);
+  if (valread == 0) {
+    return;
+  }
+  printf("%s\n", buffer);
+
+  while (1) {
+    // Send letter or word
     scanf("%s", buffer);
     send(socket, buffer, strlen(buffer), 0);
 
-    int valread = read(socket, buffer, 1024);
+    // Get response
+    valread = read(socket, buffer, 1024);
     if (valread == 0) {
-      break;
+      return;
     }
+    printf("%s\n", buffer);
 
-    printf("Message from server: %s\n", buffer);
     if (strcmp(buffer, "You won!") == 0) {
-      break;
+      return;
+    }
+    if (strcmp(buffer, "You lost!") == 0) {
+      return;
     }
   }
 }

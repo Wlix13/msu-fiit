@@ -15,6 +15,8 @@
 #include <string.h>
 #include <unistd.h>
 
+const char *uriString = "mongodb://127.0.0.1:27017";
+
 void handleClient(int socket) {
   // Start game
   // Wait for client to start the game
@@ -31,8 +33,9 @@ void handleClient(int socket) {
     // Init database
     mongoc_client_t *client = NULL;
     mongoc_database_t *database = NULL;
-    mongoc_collection_t *collection = getCollection(
-        "mongodb://localhost:27017", "IPC", "words", &client, &database);
+    mongoc_collection_t *collection;
+    collection = getCollection(uriString, "IPC", "words", &client, &database);
+
     if (!collection) {
       fprintf(stderr, "Failed to get collection\n");
       exit(EXIT_FAILURE);
@@ -40,11 +43,12 @@ void handleClient(int socket) {
 
     // Get word from database
     word = wordSmallestFactor(collection);
+    printf("%s\n", word);
 
     // Send word length to client
-    // char wordLength[10];
-    // sprintf(wordLength, "%ld", strlen(word));
-    // send(socket, wordLength, strlen(wordLength), 0);
+    char wordLength[10];
+    sprintf(wordLength, "%ld", strlen(word));
+    send(socket, wordLength, strlen(wordLength), 0);
   } else {
     send(socket, "Game not started", strlen("Game not started"), 0);
     return;
@@ -53,7 +57,6 @@ void handleClient(int socket) {
   int guessedLetters = 0;
 
   while (1) {
-    char buffer[1024] = {0};
     int valread = read(socket, buffer, 1024);
     if (valread == 0) {
       break;

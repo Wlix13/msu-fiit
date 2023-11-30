@@ -1,6 +1,4 @@
 #include "mongo.h"
-#include "mongoc/bson/bson.h"
-#include "mongoc/mongoc.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -180,50 +178,50 @@ char *wordSmallestFactor(mongoc_collection_t *collection) {
   return word;
 }
 
-int main(int argc, char const *argv[]) {
-  // MongoDB URI connection string
-  const char *uriString = "mongodb://127.0.0.1:27017";
+// int main(int argc, char const *argv[]) {
+//   // MongoDB URI connection string
+//   const char *uriString = "mongodb://127.0.0.1:27017";
 
-  mongoc_client_t *client;
-  mongoc_database_t *database;
-  mongoc_collection_t *collection;
+//   mongoc_client_t *client;
+//   mongoc_database_t *database;
+//   mongoc_collection_t *collection;
 
-  collection = getCollection(uriString, "IPC", "words", &client, &database);
+//   collection = getCollection(uriString, "IPC", "words", &client, &database);
 
-  if (!collection) {
-    fprintf(stderr, "Failed to get collection\n");
-    exit(EXIT_FAILURE);
-  }
+//   if (!collection) {
+//     fprintf(stderr, "Failed to get collection\n");
+//     exit(EXIT_FAILURE);
+//   }
 
-  // Call the function to insert document
-  // if (argc > 3) {
-  //   insertUpdateDocument(collection, argv[1], argv[2], strtod(argv[3],
-  //   NULL));
-  // } else {
-  //   fprintf(stderr, "Not enough arguments\n");
-  // }
+//   // Call the function to insert document
+//   // if (argc > 3) {
+//   //   insertUpdateDocument(collection, argv[1], argv[2], strtod(argv[3],
+//   //   NULL));
+//   // } else {
+//   //   fprintf(stderr, "Not enough arguments\n");
+//   // }
 
-  // Call the function to get document
-  // if (argc > 1) {
-  //   getDocument(collection, argv[1]);
-  // } else {
-  //   fprintf(stderr, "Not enough arguments\n");
-  // }
+//   // Call the function to get document
+//   // if (argc > 1) {
+//   //   getDocument(collection, argv[1]);
+//   // } else {
+//   //   fprintf(stderr, "Not enough arguments\n");
+//   // }
 
-  // Call the function to delete document
-  // if (argc > 1) {
-  //   deleteDocument(collection, argv[1]);
-  // } else {
-  // fprintf(stderr, "Not enough arguments\n");
-  // }
+//   // Call the function to delete document
+//   // if (argc > 1) {
+//   //   deleteDocument(collection, argv[1]);
+//   // } else {
+//   // fprintf(stderr, "Not enough arguments\n");
+//   // }
 
-  // Get word
-  const char *word = wordSmallestFactor(collection);
-  printf("%s\n", word);
+//   // Get word
+//   char *word = wordSmallestFactor(collection);
+//   printf("%s\n", word);
 
-  // Clean up
-  closeConnection(client, database, collection);
-  free((void *)word);
+//   // Clean up
+//   closeConnection(client, database, collection);
+//   free((void *)word);
 
-  return 1;
-}
+//   return 1;
+// }

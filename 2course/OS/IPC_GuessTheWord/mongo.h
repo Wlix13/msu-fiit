@@ -1,7 +1,8 @@
 #ifndef MONGO_H
 #define MONGO_H
 
-#include "mongoc/mongoc.h"
+#include <mongoc/mongoc.h>
+#include <bson/bson.h>
 
 /*
  * This function gets a collection from a database.
