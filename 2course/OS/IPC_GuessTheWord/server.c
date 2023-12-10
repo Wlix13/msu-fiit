@@ -1,95 +1,131 @@
-/*
-Севрер получает от клиента или букву или слово. Если буква, то проверяет есть ли
-она в слове и отсылает клиенту в каких позициях она находится. Если буквы нет,
-то отсылает клиенту сообщение о том, что буквы нет. Если клиент угадал все
-буквы, то отсылает клиенту сообщение о том, что он выиграл. Если клиент
-отправляет слово, то проверяет совпадает ли оно с загаданным и отсылает клиенту
-ответ. Если слово не совпадает, то клиенту отсылается сообщение о том, что он
-проиграл.
-*/
-
 #include "mongo.h"
-#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
-const char *uriString = "mongodb://127.0.0.1:27017";
+#define MAX_CLIENTS 10
+#define BUFFER_SIZE 1024
+#define MESSAGE_LENGTH 1024
+#define MONGODB_URI "mongodb://localhost:27017"
 
-void handleClient(int socket) {
-  // Start game
-  // Wait for client to start the game
-  char *word;
-  char buffer[1024] = {0};
-  send(socket, "Send 'start' to begin", strlen("Send 'start' to begin"), 0);
-  int valread = read(socket, buffer, 1024);
-  if (valread == 0) {
-    return;
-  }
-
-  if (strcmp(buffer, "start") == 0) {
-    send(socket, "Game started", strlen("Game started"), 0);
-    // Init database
-    mongoc_client_t *client = NULL;
-    mongoc_database_t *database = NULL;
-    mongoc_collection_t *collection;
-    collection = getCollection(uriString, "IPC", "words", &client, &database);
-
-    if (!collection) {
-      fprintf(stderr, "Failed to get collection\n");
-      exit(EXIT_FAILURE);
+// Global variables for MongoDB
+mongoc_client_t *client;
+mongoc_database_t *database;
+mongoc_collection_t *collection;
+/*
+ * Function to update the word progress.
+ * @param word: A string representing word
+ * @param guess: A string representing guess
+ * @param wordProgress: A string representing word progress
+ */
+void updateWordProgress(const char *word, const char *guess,
+                        char *wordProgress) {
+  int length = strlen(word);
+  for (int i = 0; i < length; i++) {
+    if (word[i] == guess[0]) {
+      wordProgress[i] = guess[0];
     }
-
-    // Get word from database
-    word = wordSmallestFactor(collection);
-    printf("%s\n", word);
-
-    // Send word length to client
-    char wordLength[10];
-    sprintf(wordLength, "%ld", strlen(word));
-    send(socket, wordLength, strlen(wordLength), 0);
-  } else {
-    send(socket, "Game not started", strlen("Game not started"), 0);
-    return;
   }
-  char *guessedWord = malloc(strlen(word) + 1);
-  int guessedLetters = 0;
+}
 
-  while (1) {
-    int valread = read(socket, buffer, 1024);
-    if (valread == 0) {
-      break;
-    }
+/*
+ * This function checks if the word is completed.
+ * @param word: A string representing the word
+ * @param wordProgress: A string representing the word progress
+ */
+int isWordCompleted(const char *word, const char *wordProgress) {
+  return strcmp(wordProgress, word) == 0;
+}
 
-    if (strlen(buffer) == 1) {
-      char letter = buffer[0];
-      int letterFound = 0;
-      for (int i = 0; i < strlen(word); i++) {
-        if (word[i] == letter) {
-          letterFound = 1;
-          guessedWord[i] = letter;
-          guessedLetters++;
-        }
-      }
-      if (letterFound) {
-        if (guessedLetters == strlen(word)) {
-          send(socket, "You won!", strlen("You won!"), 0);
+/*
+ * Handles communication with the client:
+ * 1. Waits for the client to start the game
+ * 2. Gets word from MongoDB
+ * 3. Accepts guesses
+ * 4. Sends responses
+ * 5. Updates the factor in MongoDB
+ */
+void *clientHandler(void *socket) {
+  int sock = *(int *)socket;
+  int valread;
+  char *word, *hint, *id;
+
+  // Get the word with the smallest factor
+  id = idSmallestFactor(collection);
+  word = getWordById(collection, id);
+  hint = getHintById(collection, id);
+  printf("Word: %s, ID: %s\n", word, id);
+
+  char clientMsg[MESSAGE_LENGTH];
+  char response[BUFFER_SIZE];
+  char wordProgress[strlen(word) + 1];
+  bool gameStarted = false;
+  bool gameWon = false;
+
+  memset(wordProgress, '_', strlen(word));
+  wordProgress[strlen(word)] = '\0';
+
+  // Communication with client
+  while ((valread = read(sock, clientMsg, MESSAGE_LENGTH - 1)) > 0) {
+    clientMsg[valread] = '\0';
+
+    if (!gameStarted && strcmp(clientMsg, "start") == 0) {
+      sprintf(response, "Game started. \nWord length: %lu. Hint: %s",
+              strlen(word), hint);
+      gameStarted = true;
+    } else if (gameStarted) {
+      if (strlen(clientMsg) == 1) {
+        // Single letter guess
+        updateWordProgress(word, clientMsg, wordProgress);
+        if (isWordCompleted(word, wordProgress)) {
+          sprintf(response, "Congratulations! Correct word guessed.");
+          send(sock, response, strlen(response), 0);
+          gameWon = true;
           break;
+        } else {
+          sprintf(response, "Current Progress: %s", wordProgress);
         }
-        send(socket, guessedWord, strlen(guessedWord), 0);
+      } else if (strcmp(clientMsg, word) == 0) {
+        sprintf(response, "Congratulations! Correct word guessed.");
+        send(sock, response, strlen(response), 0);
+        gameWon = true;
+        break;
       } else {
-        send(socket, "Letter not found", strlen("Letter not found"), 0);
+        sprintf(response, "Incorrect guess. Game over.");
+        send(sock, response, strlen(response), 0);
+        break;
       }
     } else {
-      if (strcmp(buffer, word) == 0) {
-        send(socket, "You won!", strlen("You won!"), 0);
-      } else {
-        send(socket, "You lost!", strlen("You lost!"), 0);
-      }
-      break;
+      strcpy(response, "Please start the game first by sending 'start'.");
     }
+
+    send(sock, response, strlen(response), 0);
   }
+
+  if (valread == 0) {
+    printf("Client disconnected\n");
+  } else if (valread == -1) {
+    perror("Recv failed");
+  }
+
+  // Update the factor based on the game outcome
+  if (gameWon) {
+    incrementFactorById(collection, id, 3.0);
+  } else {
+    incrementFactorById(collection, id, 1.0);
+  }
+
+  free(word);
+  free(hint);
+  free(id);
+  close(sock);
+  free(socket);
+  return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -98,51 +134,72 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  // Port validation(<1024 are reserved)
   int PORT = strtol(argv[1], NULL, 10);
-
-  if (PORT < 0 || PORT > 65535) {
-    fprintf(stderr, "Invalid port number\n");
+  if (PORT < 1024 || PORT > 65535) {
+    fprintf(stderr, "Port number should be between 1024 and 65535\n");
     exit(EXIT_FAILURE);
   }
 
-  int server_fd, new_socket;
+  // Connect to MongoDB
+  collection = getCollection(MONGODB_URI, "IPC", "words", &client, &database);
+  if (!collection) {
+    fprintf(stderr, "Failed to connect to MongoDB collection\n");
+    exit(EXIT_FAILURE);
+  }
+
+  int sock, new_socket, *new_sock;
   struct sockaddr_in address;
   int addrlen = sizeof(address);
+  pthread_t thread_id;
 
-  // Creating socket file descriptor
-  if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-    perror("socket failed");
+  // Create socket
+  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+    perror("Socket failed");
     exit(EXIT_FAILURE);
   }
 
+  // Setting address and port
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;
   address.sin_port = htons(PORT);
 
-  // Bind the socket to the address and port number
-  if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-    perror("bind failed");
+  // Binding the socket
+  if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0) {
+    perror("Bind failed");
+    exit(EXIT_FAILURE);
+  }
+  if (listen(sock, MAX_CLIENTS) < 0) {
+    perror("Listen");
     exit(EXIT_FAILURE);
   }
 
-  // Listen for incoming connections
-  if (listen(server_fd, 3) < 0) {
-    perror("listen");
-    exit(EXIT_FAILURE);
+  // Accepting incoming connections
+  while ((new_socket = accept(sock, (struct sockaddr *)&address,
+                              (socklen_t *)&addrlen))) {
+    new_sock = malloc(sizeof(int));
+    *new_sock = new_socket;
+
+    if (pthread_create(&thread_id, NULL, clientHandler, (void *)new_sock) < 0) {
+      perror("Could not create thread");
+      exit(EXIT_FAILURE);
+    }
+
+    // Detach the thread so that it doesn't have to be joined
+    pthread_detach(thread_id);
+
+    printf("Client connected\n");
   }
 
-  // Accept an incoming connection
-  if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
-                           (socklen_t *)&addrlen)) < 0) {
-    perror("accept");
+  if (new_socket < 0) {
+    perror("Accept failed");
     exit(EXIT_FAILURE);
   }
-
-  // Handle the client
-  handleClient(new_socket);
 
   // Close the socket
-  close(server_fd);
+  close(sock);
 
+  // Close the connection to MongoDB
+  closeConnection(client, database, collection);
   return 0;
 }
