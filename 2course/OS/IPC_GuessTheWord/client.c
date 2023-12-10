@@ -1,104 +1,114 @@
-/*
-Клиент отправляет серверу или букву, или слово. Сервер отвечает, в каких
-позициях в слове находится эта буква или слово. Если клиент угадал слово,
-сервер отвечает об этом и закрывает соединение.
-*/
-
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
-void work(int socket) {
-  char buffer[1024] = {0};
+#define BUFFER_SIZE 1024
+#define MESSAGE_LENGTH 1024
 
-  // Server sends a hello message
-  int valread = read(socket, buffer, 1024);
-  if (valread == 0) {
-    return;
-  }
-  printf("%s\n", buffer);
+/*
+ * Handles communication with the server:
+ * 1. Starts the game
+ * 2. Accepts guesses
+ * 3. Sends responses
+ */
+void serverHandler(int sock) {
+  char buffer[BUFFER_SIZE] = {0};
+  char guess[MESSAGE_LENGTH] = {0};
+  int valread;
 
-  // Send a start message
-  scanf("%s", buffer);
-  send(socket, buffer, strlen(buffer), 0);
-
-  // Print response and word length
-  valread = read(socket, buffer, 1024);
-  if (valread == 0) {
-    return;
-  }
-  printf("%s\n", buffer);
-  valread = read(socket, buffer, 1024);
-  if (valread == 0) {
-    return;
-  }
-  printf("%s\n", buffer);
+  // Start the game
+  send(sock, "start", strlen("start"), 0);
 
   while (1) {
-    // Send letter or word
-    scanf("%s", buffer);
-    send(socket, buffer, strlen(buffer), 0);
-
-    // Get response
-    valread = read(socket, buffer, 1024);
+    // Receive and print the response from the server
+    memset(buffer, 0, BUFFER_SIZE);
+    valread = read(sock, buffer, BUFFER_SIZE);
     if (valread == 0) {
-      return;
+      break;
     }
-    printf("%s\n", buffer);
+    printf("Server: %s\n", buffer);
 
-    if (strcmp(buffer, "You won!") == 0) {
-      return;
+    // Check if the game is ended
+    if (strstr(buffer, "Congratulations") || strstr(buffer, "Game over") ||
+        strstr(buffer, "Ptart")) {
+      break;
     }
-    if (strcmp(buffer, "You lost!") == 0) {
-      return;
-    }
+
+    printf("Enter a letter or guess the word: ");
+    scanf("%s", guess);
+
+    // Send the guess to the server
+    send(sock, guess, strlen(guess), 0);
   }
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 3) {
-    fprintf(stderr, "Usage: %s <ip> <port>\n", argv[0]);
+  if (argc != 2) {
+    fprintf(stderr, "Usage: %s <ip:port>\n", argv[0]);
     exit(EXIT_FAILURE);
   }
 
-  char *IP = argv[1];
-  int PORT = strtol(argv[2], NULL, 10);
-  if (PORT < 0 || PORT > 65535) {
-    fprintf(stderr, "Invalid port number\n");
+  char *token;
+  char *IP;
+  int PORT;
+
+  // Split the input string into IP and port
+  token = strtok(argv[1], ":");
+  if (token != NULL) {
+    IP = token;
+    token = strtok(NULL, ":");
+    if (token != NULL) {
+      PORT = strtol(token, NULL, 10);
+    } else {
+      fprintf(stderr, "Invalid input. Provide a port number.\n");
+      exit(EXIT_FAILURE);
+    }
+  } else {
+    fprintf(stderr,
+            "Invalid input. Provide an IP address and a port number.\n");
     exit(EXIT_FAILURE);
   }
 
+  // Port validation(<1024 are reserved)
+  if (PORT < 1024 || PORT > 65535) {
+    fprintf(stderr, "Port number should be between 1024 and 65535\n");
+    exit(EXIT_FAILURE);
+  }
+
+  struct sockaddr_in server_addr;
   int sock = 0;
-  struct sockaddr_in serv_addr;
 
-  // Create a socket
+  // Create socket
   if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    printf("\n Socket creation error \n");
+    perror("Socket failed");
     exit(EXIT_FAILURE);
   }
 
-  serv_addr.sin_family = AF_INET;
-  serv_addr.sin_port = htons(PORT);
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_port = htons(PORT);
 
-  // Convert IPv4 and IPv6 addresses from text to binary formc
-  if (inet_pton(AF_INET, IP, &serv_addr.sin_addr) <= 0) {
-    printf("\nInvalid address / Address not supported \n");
+  // Convert IPv4 and IPv6 addresses from text to binary form
+  if (inet_pton(AF_INET, IP, &server_addr.sin_addr) <= 0) {
+    perror("Invalid address");
     exit(EXIT_FAILURE);
   }
 
   // Connect to the server
-  if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-    printf("\nConnection Failed \n");
+  if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+    perror("Connection failed");
     exit(EXIT_FAILURE);
   }
 
-  work(sock);
+  printf("\nConnected to the server.\n");
+
+  // Handle the game
+  serverHandler(sock);
 
   // Close the socket
   close(sock);
-
   return 0;
 }
