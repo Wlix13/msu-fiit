@@ -1,17 +1,17 @@
 #ifndef MONGO_H
 #define MONGO_H
 
-#include <mongoc/mongoc.h>
 #include <bson/bson.h>
+#include <mongoc/mongoc.h>
 
 /*
  * This function gets a collection from a database.
- * The function takes the following parameters:
- * - uriString: A URI string of the MongoDB server
- * - databaseName: A string name of database
- * - collectionName: A string name of collection
- * - client: A **mongoc_client_t struct representing the client
- * - database: A **mongoc_database_t struct representing the database
+ * @param uriString: A string representing the MongoDB URI
+ * @param databaseName: A string representing the database name
+ * @param collectionName: A string representing the collection name
+ * @param client: A **mongoc_client_t struct representing the client
+ * @param database: A **mongoc_database_t struct representing the database
+ * @return A mongoc_collection_t struct representing the collection
  */
 mongoc_collection_t *getCollection(const char *uriString,
                                    const char *databaseName,
@@ -21,47 +21,51 @@ mongoc_collection_t *getCollection(const char *uriString,
 
 /*
  * This function closes the connection to the MongoDB server.
- * The function takes the following parameters:
- * - client: A *mongoc_client_t struct representing the client
- * - database: A **mongoc_database_t struct representing the database
- * - collection: A **mongoc_collection_t struct representing the collection
+ * @param client: A mongoc_client_t struct representing the client
+ * @param database: A mongoc_database_t struct representing the database
+ * @param collection: A mongoc_collection_t struct representing the collection
  */
 void closeConnection(mongoc_client_t *client, mongoc_database_t *database,
                      mongoc_collection_t *collection);
 
 /*
- * This function inserts or updates a document in a collection.
- * The function takes the following parameters:
- * - collection: A mongoc_collection_t struct representing collection
- * - id: A string representing _id of document
- * - word: A string representing word field of document
- * - factor: A double representing factor field of document
+ * This function gets a word from a collection by its _id.
+ * @param collection: A mongoc_collection_t struct representing collection
+ * @param id: A string representing _id of document to get
+ * @return A string representing the word
  */
-void insertUpdateDocument(mongoc_collection_t *collection, const char *id,
-                          const char *word, const double factor);
+char *getWordById(mongoc_collection_t *collection, const char *id);
 
 /*
- * This function gets a document from a collection.
- * The function takes the following parameters:
- * - collection: A mongoc_collection_t struct representing collection
- * - id: A string representing _id of document to get
+ * This function gets a hint from a collection by its _id.
+ * @param collection: A mongoc_collection_t struct representing collection
+ * @param id: A string representing _id of document to get
+ * @return A string representing the hint
  */
-void getDocument(mongoc_collection_t *collection, const char *id);
+char *getHintById(mongoc_collection_t *collection, const char *id);
 
 /*
- * This function deletes a document from a collection.
- * The function takes the following parameters:
- * - collection: A mongoc_collection_t struct representing collection
- * - id: A string representing _id of document to delete
+ * This function gets a factor from a collection by its _id.
+ * @param collection: A mongoc_collection_t struct representing collection
+ * @param id: A string representing _id of document to get
+ * @return A double representing the factor
  */
-void deleteDocument(mongoc_collection_t *collection, const char *id);
+double getFactorById(mongoc_collection_t *collection, const char *id);
 
 /*
- * This function gets the document with the smallest factor from a collection
- * and increments its factor by 1.
- * The function takes the following parameters:
- * - collection: A mongoc_collection_t struct representing collection
+ * This function gets the document with the smallest factor from a collection.
+ * @param collection: A mongoc_collection_t struct representing collection
+ * @return A string representing the _id of the document
  */
-char *wordSmallestFactor(mongoc_collection_t *collection);
+char *idSmallestFactor(mongoc_collection_t *collection);
+
+/*
+ * This function increments the factor of a document by its _id.
+ * @param collection: A mongoc_collection_t struct representing collection
+ * @param id: A string representing _id of document to increment
+ * @param increment: A double representing the increment
+ */
+void incrementFactorById(mongoc_collection_t *collection, const char *id,
+                         const double increment);
 
 #endif
