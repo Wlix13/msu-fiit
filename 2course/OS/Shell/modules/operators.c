@@ -1,10 +1,6 @@
 #include "operators.h"
 #include "utils.h"
 
-/*
- * Function sets up default pipes for process if they are not already set up
- * Default pipes redirect to console
- */
 void defaultPipes(Data *data, bool stdoutRedirect) {
   if (!data->outPipePid && stdoutRedirect)
     data->outPipePid = pipeToFD(data->outPipe, STDOUT_FILENO);
@@ -12,11 +8,6 @@ void defaultPipes(Data *data, bool stdoutRedirect) {
     data->errPipePid = pipeToFD(data->errPipe, STDERR_FILENO);
 }
 
-/*
- * Function to process(resolve tree) and run command
- * @param root - root of the tree to process
- * @return status of the command
- */
 int processAndRun(Node *root) {
   Data *data = resolve(root, (int[2]){STDIN_FILENO, STDOUT_FILENO}, true, true);
 
@@ -32,14 +23,6 @@ int processAndRun(Node *root) {
   return status;
 }
 
-/*
- * Function to handle && operator
- * @param root - root of the tree to process
- * @param left - pipe to read from
- * @param stdinRedirect - flag to determine if stdin should be redirected
- * @param stdoutRedirect - flag to determine if stdout should be redirected
- * @return status of the command
- */
 Data *handleAndOperator(Node *root, int left[2], bool stdinRedirect,
                         bool stdoutRedirect) {
   Data *s1 = resolve(root->left, left, stdinRedirect, stdoutRedirect);
@@ -55,14 +38,6 @@ Data *handleAndOperator(Node *root, int left[2], bool stdinRedirect,
   }
 }
 
-/*
- * Function to handle || operator
- * @param root - root of the tree to process
- * @param left - pipe to read from
- * @param stdinRedirect - flag to determine if stdin should be redirected
- * @param stdoutRedirect - flag to determine if stdout should be redirected
- * @return status of the command
- */
 Data *handleOrOperator(Node *root, int left[2], bool stdinRedirect,
                        bool stdoutRedirect) {
   Data *r = resolve(root->left, left, stdinRedirect, stdoutRedirect);
@@ -77,14 +52,6 @@ Data *handleOrOperator(Node *root, int left[2], bool stdinRedirect,
   return r;
 }
 
-/*
- * Function to handle | operator
- * @param root - root of the tree to process
- * @param left - pipe to read from
- * @param stdinRedirect - flag to determine if stdin should be redirected
- * @param stdoutRedirect - flag to determine if stdout should be redirected
- * @return status of the command
- */
 Data *handlePipeOperator(Node *root, int left[2], bool stdinRedirect,
                          bool stdoutRedirect) {
   Data *r1 = resolve(root->left, left, stdinRedirect, false);
@@ -101,14 +68,6 @@ Data *handlePipeOperator(Node *root, int left[2], bool stdinRedirect,
   return r2;
 }
 
-/*
- * Function to handle ; operator
- * @param root - root of the tree to process
- * @param left - pipe to read from
- * @param stdinRedirect - flag to determine if stdin should be redirected
- * @param stdoutRedirect - flag to determine if stdout should be redirected
- * @return status of the command
- */
 Data *handleListOperator(Node *root, int left[2], bool stdinRedirect,
                          bool stdoutRedirect) {
   Data *r = resolve(root->left, left, stdinRedirect, stdoutRedirect);
@@ -118,13 +77,6 @@ Data *handleListOperator(Node *root, int left[2], bool stdinRedirect,
   return resolve(root->right, left, stdinRedirect, stdoutRedirect);
 };
 
-/*
- * Function to handle > operator
- * @param root - root of the tree to process
- * @param left - pipe to read from
- * @param stdinRedirect - flag to determine if stdin should be redirected
- * @return status of the command
- */
 Data *handleWriteOperator(Node *root, int left[2], bool stdinRedirect) {
   root->left->isDaemon = root->isDaemon;
   Data *r1 = resolve(root->left, left, stdinRedirect, false);
@@ -134,13 +86,6 @@ Data *handleWriteOperator(Node *root, int left[2], bool stdinRedirect) {
   return r1;
 };
 
-/*
- * Function to handle >> operator
- * @param root - root of the tree to process
- * @param left - pipe to read from
- * @param stdinRedirect - flag to determine if stdin should be redirected
- * @return status of the command
- */
 Data *handleAppendOperator(Node *root, int left[2], bool stdinRedirect) {
   root->left->isDaemon = root->isDaemon;
   Data *r1 = resolve(root->left, left, stdinRedirect, false);
@@ -150,13 +95,6 @@ Data *handleAppendOperator(Node *root, int left[2], bool stdinRedirect) {
   return r1;
 };
 
-/*
- * Function to handle < operator
- * @param root - root of the tree to process
- * @param left - pipe to read from
- * @param stdoutRedirect - flag to determine if stdout should be redirected
- * @return status of the command
- */
 Data *handleReadOperator(Node *root, int left[2], bool stdoutRedirect) {
   root->left->isDaemon = root->isDaemon;
   Data *r1 = resolve(root->left, left, false, stdoutRedirect);
@@ -180,12 +118,6 @@ Data *handleReadOperator(Node *root, int left[2], bool stdoutRedirect) {
   return r1;
 };
 
-/*
- * Function to handle & operator
- * @param root - root of the tree to process
- * @param left - pipe to read from
- * @return status of the command
- */
 Data *handleDaemonOperator(Node *root, int left[2]) {
   root->left->isDaemon = 1;
   Data *r1 = resolve(root->left, left, false, true);
@@ -196,14 +128,6 @@ Data *handleDaemonOperator(Node *root, int left[2]) {
   return r1;
 };
 
-/*
- * Function to handle subshell ()
- * @param root - root of the tree to process
- * @param left - pipe to read from
- * @param stdinRedirect - flag to determine if stdin should be redirected
- * @param stdoutRedirect - flag to determine if stdout should be redirected
- * @return status of the command
- */
 Data *subshellize(Node *root, int left[2], bool stdinRedirect,
                   bool stdoutRedirect) {
   Data *data = prepareExecData("subshell");
@@ -247,14 +171,6 @@ Data *subshellize(Node *root, int left[2], bool stdinRedirect,
   return data;
 }
 
-/*
- * Function to resolve tree
- * @param root - root of the tree to process
- * @param left - pipe to read from
- * @param stdinRedirect - flag to determine if stdin should be redirected
- * @param stdoutRedirect - flag to determine if stdout should be redirected
- * @return status of the command
- */
 Data *resolve(Node *root, int left[2], bool stdinRedirect,
               bool stdoutRedirect) {
   if (root->subshell)

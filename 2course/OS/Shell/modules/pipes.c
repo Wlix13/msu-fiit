@@ -1,11 +1,6 @@
 #include "pipes.h"
 #include "utils.h"
 
-/*
- * Function to make output of process go to file descriptor
- * @param fd - pipe to redirect
- * @param d - file descriptor to redirect to
- */
 pid_t pipeToFD(int fd[2], int d) {
   pid_t pid;
   if ((pid = fork()) == 0) {
@@ -33,12 +28,6 @@ pid_t pipeToFD(int fd[2], int d) {
   return pid;
 }
 
-/*
- * Function to make output of process go to file
- * @param fd - pipe to redirect
- * @param file - file to redirect to
- * @param append - flag to determine if file should be appended
- */
 pid_t pipeToFile(int fd[2], char *file, int append) {
   pid_t pid;
   if ((pid = fork()) == 0) {
@@ -76,11 +65,6 @@ pid_t pipeToFile(int fd[2], char *file, int append) {
   return pid;
 }
 
-/*
- * Function to make input of process go from file
- * @param fd - pipe to redirect
- * @param file - file to redirect from
- */
 pid_t pipeFromFile(int fd[2], char *file) {
   pid_t pid;
   if ((pid = fork()) == 0) {
@@ -111,11 +95,6 @@ pid_t pipeFromFile(int fd[2], char *file) {
   return pid;
 }
 
-/*
- * Function to make input of process go from pipe and output go to pipe
- * @param fd1 - pipe to redirect from
- * @param fd2 - pipe to redirect to
- */
 pid_t pipeFromTo(int fd1[2], int fd2[2]) {
   pid_t pid;
   if ((pid = fork()) == 0) {

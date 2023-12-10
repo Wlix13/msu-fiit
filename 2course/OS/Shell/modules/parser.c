@@ -1,10 +1,5 @@
 #include "parser.h"
 
-/*
- * Function to trim leading and trailing whitespace from string
- * @param str: The string to be trimmed
- * @return A pointer to the trimmed string
- */
 char *trimStr(const char *str) {
   size_t strLength = strlen(str);
   const char *start = str;
@@ -25,11 +20,6 @@ char *trimStr(const char *str) {
   return trimmedStr;
 }
 
-/*
- * Function to create a new node for binary tree
- * @param value: The value of the node
- * @return A pointer to the new node
- */
 Node *createNode(const char *value) {
   Node *newNode = (Node *)malloc(sizeof(Node));
   newNode->value = strdup(value);
@@ -41,22 +31,10 @@ Node *createNode(const char *value) {
   return newNode;
 }
 
-/*
- * Function to check if character is an operator (|, >, <, &, ;)
- * @param ch: The character to be checked
- * @return true if the character is an operator, false otherwise
- */
 bool isOperator(const char ch) {
   return (ch == '|' || ch == '>' || ch == '<' || ch == '&' || ch == ';');
 }
 
-/*
- * Interface to parse expression
- * @param expression: The expression to be parsed
- * @param start: The start index of the expression
- * @param end: The end index of the expression
- * @return A pointer to the root of the binary tree
- */
 Node *parseExpressionInterface(const char *expression, int start, int end) {
   if (start > end)
     return NULL;
@@ -156,11 +134,6 @@ Node *parseExpressionInterface(const char *expression, int start, int end) {
   return root;
 }
 
-/*
- * Function to parse expression
- * @param expression: The expression to be parsed
- * @return A pointer to the root of the binary tree
- */
 Node *parseExpression(const char *expression) {
   int len = strlen(expression);
   Node *root = parseExpressionInterface(expression, 0, len - 1);
@@ -168,11 +141,6 @@ Node *parseExpression(const char *expression) {
   return root;
 }
 
-/*
- * Function to print binary tree in preorder
- * @param root: The root of binary tree
- * @param i: The index of the node
- */
 void printPreorder(Node *root, int i) {
   if (root) {
     printf("%s %d [subshell: %s]\n", root->value, i++,
@@ -182,11 +150,6 @@ void printPreorder(Node *root, int i) {
   }
 }
 
-/*
- * Function to free binary tree
- * Arguments:
- *   root: The root of binary tree
- */
 void freeTree(Node *root) {
   if (root) {
     freeTree(root->left);

@@ -3,10 +3,6 @@
 int DEBUG = 0;
 int maxFD = 2;
 
-/*
- * Function to close all file descriptors except exceptions
- * @param exceptions - array of file descriptors to not close
- */
 void closeIrrelevantFDs(int exceptions[]) {
   for (int fd = 0; fd <= maxFD; fd++) {
     int close_fd = 1;
@@ -22,12 +18,6 @@ void closeIrrelevantFDs(int exceptions[]) {
   }
 }
 
-/*
- * Function to tokenize(split) command into arguments
- * @param command - command to tokenize
- * @param numArgs - pointer to int to store number of arguments
- * @return array of arguments
- */
 char **tokenizeCommand(const char *command, int *numArgs) {
   // Copy command to not modify it
   char *copy = strdup(command);

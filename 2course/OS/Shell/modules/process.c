@@ -1,11 +1,8 @@
 #include "process.h"
 #include "utils.h"
 
-/*
- * Function to create a new Data struct(prepare for execution)
- * @param command - command to execute
- * @return Data struct
- */
+Data *activeProgram = NULL;
+
 Data *prepareExecData(char *command) {
   Data *data = malloc(sizeof(Data));
   data->command = command;
@@ -21,21 +18,12 @@ Data *prepareExecData(char *command) {
   return data;
 }
 
-Data *activeProgram = NULL;
-/*
- * Function to free Data struct
- * @param data - Data struct to free
- */
 void freeExecData(Data *data) {
   if (data == activeProgram)
     activeProgram = NULL;
   free(data);
 }
 
-/*
- * Function to handle signals
- * @param signal - signal to handle
- */
 void handleSignal(int sig) {
   if (activeProgram != NULL) {
     if (DEBUG)
@@ -49,28 +37,17 @@ void handleSignal(int sig) {
     exit(EXIT_SUCCESS);
 }
 
-/*
- * Function to start signals passthrough(redirect signals to activeProgram)
- * @param data - Data struct to pass signals to
- */
 void startSignalsPassthrough(Data *data) {
   activeProgram = data;
   signal(SIGINT, handleSignal);
   signal(SIGTSTP, handleSignal);
 }
 
-/*
- * Function to stop signals passthrough(redirect signals to default handlers)
- */
 void stopSignalsPassthrough() {
   signal(SIGINT, SIG_DFL);
   signal(SIGTSTP, SIG_DFL);
 }
 
-/*
- * Function to execute command
- * @param data - Data struct with command to execute
- */
 void execute(Data *data) {
   char **args = tokenizeCommand(data->command, 0);
 
@@ -113,10 +90,6 @@ void execute(Data *data) {
     startSignalsPassthrough(data);
 }
 
-/*
- * Function to wait for process to end
- * @param data - Data struct with process to wait for
- */
 void waitProcess(Data *data) {
   close(data->inPipe[WRITE_END]);
   close(data->outPipe[READ_END]);
