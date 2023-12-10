@@ -1,5 +1,5 @@
 /*
-Севрер получает от клиента или букву или слово. Если буква, то проверяет есть ли
+Сервер получает от клиента или букву или слово. Если буква, то проверяет есть ли
 она в слове и отсылает клиенту в каких позициях она находится. Если буквы нет,
 то отсылает клиенту сообщение о том, что буквы нет. Если клиент угадал все
 буквы, то отсылает клиенту сообщение о том, что он выиграл. Если клиент
@@ -10,54 +10,75 @@
 
 #include "mongo.h"
 #include <arpa/inet.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
+#define BUFFER_SIZE 1024
+
 const char *uriString = "mongodb://127.0.0.1:27017";
 
-void handleClient(int socket) {
+bool intro(int socket) {
   // Start game
   // Wait for client to start the game
-  char *word;
-  char buffer[1024] = {0};
-  send(socket, "Send 'start' to begin", strlen("Send 'start' to begin"), 0);
-  int valread = read(socket, buffer, 1024);
+
+  char *msg;
+  char buffer[BUFFER_SIZE] = {0};
+  msg = "Send 'start' to begin";
+
+  send(socket, msg, BUFFER_SIZE, 0);
+  size_t valread = read(socket, buffer, BUFFER_SIZE - 1);
+  buffer[valread] = '\0';
   if (valread == 0) {
-    return;
+    return false;
   }
-
+  printf("Got: %s", buffer);
   if (strcmp(buffer, "start") == 0) {
-    send(socket, "Game started", strlen("Game started"), 0);
-    // Init database
-    mongoc_client_t *client = NULL;
-    mongoc_database_t *database = NULL;
-    mongoc_collection_t *collection;
-    collection = getCollection(uriString, "IPC", "words", &client, &database);
-
-    if (!collection) {
-      fprintf(stderr, "Failed to get collection\n");
-      exit(EXIT_FAILURE);
-    }
-
-    // Get word from database
-    word = wordSmallestFactor(collection);
-    printf("%s\n", word);
-
-    // Send word length to client
-    char wordLength[10];
-    sprintf(wordLength, "%ld", strlen(word));
-    send(socket, wordLength, strlen(wordLength), 0);
+    msg = "Game started";
+    send(socket, msg, BUFFER_SIZE, 0);
+    return true;
   } else {
-    send(socket, "Game not started", strlen("Game not started"), 0);
+    msg = "Game not started";
+    send(socket, msg, BUFFER_SIZE, 0);
+    return false;
+  }
+}
+
+void handleClient(int socket) {
+  if (!intro(socket)) {
+    printf("Client didn't started the game\n");
     return;
   }
+  char buffer[BUFFER_SIZE] = {0};
+
+  mongoc_client_t *client = NULL;
+  mongoc_database_t *database = NULL;
+  mongoc_collection_t *collection;
+  collection = getCollection(uriString, "IPC", "words", &client, &database);
+
+  if (!collection) {
+    fprintf(stderr, "Failed to get collection\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // Get word from database
+  char *word = wordSmallestFactor(collection);
+  printf("Word: %s\n", word);
+
+  // Send word length to client
+  char wordLength[70];
+  sprintf(wordLength, "Guess the word with length: %ld", strlen(word));
+  send(socket, wordLength, strlen(wordLength), 0);
+
   char *guessedWord = malloc(strlen(word) + 1);
-  int guessedLetters = 0;
+  size_t guessedLetters = 0;
+  size_t valread;
 
   while (1) {
-    int valread = read(socket, buffer, 1024);
+    valread = read(socket, buffer, BUFFER_SIZE - 1);
+    buffer[valread] = '\0';
     if (valread == 0) {
       break;
     }
@@ -65,7 +86,7 @@ void handleClient(int socket) {
     if (strlen(buffer) == 1) {
       char letter = buffer[0];
       int letterFound = 0;
-      for (int i = 0; i < strlen(word); i++) {
+      for (size_t i = 0; i < strlen(word); i++) {
         if (word[i] == letter) {
           letterFound = 1;
           guessedWord[i] = letter;
@@ -74,18 +95,18 @@ void handleClient(int socket) {
       }
       if (letterFound) {
         if (guessedLetters == strlen(word)) {
-          send(socket, "You won!", strlen("You won!"), 0);
+          send(socket, "You won!", BUFFER_SIZE, 0);
           break;
         }
         send(socket, guessedWord, strlen(guessedWord), 0);
       } else {
-        send(socket, "Letter not found", strlen("Letter not found"), 0);
+        send(socket, "Letter not found", BUFFER_SIZE, 0);
       }
     } else {
       if (strcmp(buffer, word) == 0) {
-        send(socket, "You won!", strlen("You won!"), 0);
+        send(socket, "You won!", BUFFER_SIZE, 0);
       } else {
-        send(socket, "You lost!", strlen("You lost!"), 0);
+        send(socket, "You lost!", BUFFER_SIZE, 0);
       }
       break;
     }
@@ -98,7 +119,7 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  int PORT = strtol(argv[1], NULL, 10);
+  long PORT = strtol(argv[1], NULL, 10);
 
   if (PORT < 0 || PORT > 65535) {
     fprintf(stderr, "Invalid port number\n");
@@ -131,6 +152,7 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  printf("Server listening on port %ld\n", PORT);
   // Accept an incoming connection
   if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
                            (socklen_t *)&addrlen)) < 0) {
