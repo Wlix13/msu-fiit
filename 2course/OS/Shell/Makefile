@@ -1,23 +1,15 @@
-# Compiler
-CC := gcc
+CC = clang
+CFLAGS = -Wall -Wextra -g
+SRCDIR = .
+MODULES = modules
 
-# Compiler flags
-CFLAGS := -Wall -Wextra -g
+SOURCES = $(wildcard $(SRCDIR)/*.c)
+MODULE_SOURCES = $(wildcard $(MODULES)/*.c)
 
-# Directories
-SRCDIR := .
-MODULES := modules
+OBJECTS = $(SOURCES:.c=.o)
+MODULE_OBJECTS = $(MODULE_SOURCES:.c=.o)
 
-# Source files
-SOURCES := $(wildcard $(SRCDIR)/*.c)
-MODULE_SOURCES := $(wildcard $(MODULES)/*.c)
-
-# Object files
-OBJECTS := $(SOURCES:.c=.o)
-MODULE_OBJECTS := $(MODULE_SOURCES:.c=.o)
-
-# Executable
-EXECUTABLE := shell
+EXECUTABLE = shell
 
 .PHONY: all clean
 
