@@ -8,7 +8,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#define MAX_CLIENTS 10
+#define MAX_PORT 65535
+#define MIN_PORT 1024
+#define MAX_CLIENTS 2
 #define BUFFER_SIZE 1024
 #define MESSAGE_LENGTH 1024
 #define MONGODB_URI "mongodb://localhost:27017"
@@ -136,7 +138,7 @@ int main(int argc, char *argv[]) {
 
   // Port validation(<1024 are reserved)
   int PORT = strtol(argv[1], NULL, 10);
-  if (PORT < 1024 || PORT > 65535) {
+  if (PORT < MIN_PORT || PORT > MAX_PORT) {
     fprintf(stderr, "Port number should be between 1024 and 65535\n");
     exit(EXIT_FAILURE);
   }

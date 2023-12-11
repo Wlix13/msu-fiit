@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#define MAX_PORT 65535
+#define MIN_PORT 1024
 #define BUFFER_SIZE 1024
 #define MESSAGE_LENGTH 1024
 
@@ -74,7 +76,7 @@ int main(int argc, char *argv[]) {
   }
 
   // Port validation(<1024 are reserved)
-  if (PORT < 1024 || PORT > 65535) {
+  if (PORT < MIN_PORT || PORT > MAX_PORT) {
     fprintf(stderr, "Port number should be between 1024 and 65535\n");
     exit(EXIT_FAILURE);
   }
