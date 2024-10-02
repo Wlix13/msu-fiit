@@ -41,4 +41,4 @@
 
 ## License
 
-This repository and its contents are licensed under the [MIT License](https://opensource.org/licenses/MIT).
+This repository and its contents are licensed under the [MIT License](LICENSE).
