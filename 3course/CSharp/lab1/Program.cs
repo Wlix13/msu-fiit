@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Numerics;
 using Spectre.Console;
 using System.Security.Cryptography.X509Certificates;
@@ -11,6 +11,9 @@ namespace Lab1;
 // Delegate definitions
 public delegate void FValues(double x, ref Complex y1, ref Complex y2);
 public delegate DataItem FDI(double x);
+
+// From additional task
+public delegate void Fy3Values(double x, ref Complex y3);
 
 // Struct DataItem
 public struct DataItem
@@ -141,6 +144,66 @@ public class V1DataList : V1Data
     }
 }
 
+// Class V1DDataList derived from V1DataList
+// From additional task
+public class V1DDataList : V1DataList
+{
+    public List<Complex> Y3Values { get; set; }
+
+    public V1DDataList(string key, DateTime date, double[] x, FDI F, Fy3Values Fy3) : base(key, date)
+    {
+        Y3Values = new();
+        HashSet<double> xSet = new();
+        foreach (double xi in x)
+        {
+            if (xSet.Add(xi))
+            {
+                DataItem item = F(xi);
+                DataItems.Add(item);
+
+                Complex y3 = new();
+                Fy3(xi, ref y3);
+                Y3Values.Add(y3);
+            }
+        }
+    }
+
+    public override (double, double) MinMaxDifference
+    {
+        get
+        {
+            if (DataItems.Count == 0 || Y3Values.Count == 0)
+            {
+                return (0.0, 0.0);
+            }
+
+            double minDiff = double.MaxValue;
+            double maxDiff = double.MinValue;
+            
+            for (int i = 0; i < DataItems.Count; i++)
+            {
+                double diff = Complex.Abs(DataItems[i].Y1 - Y3Values[i]);
+                if (diff < minDiff) minDiff = diff;
+                if (diff > maxDiff) maxDiff = diff;
+            }
+            return (minDiff, maxDiff);
+        }
+    }
+
+    public override string ToLongString(string format)
+    {
+        var sb = new StringBuilder(ToString() + "\n");
+        for (int i = 0; i < DataItems.Count; i++)
+        {
+            DataItem item = DataItems[i];
+            Complex y3 = Y3Values[i];
+            sb.AppendLine($"X: {item.X.ToString(format)}, Y1: {item.Y1.ToString(format)}, Y2: {item.Y2.ToString(format)}, Y3: {y3.ToString(format)}");
+        }
+        return sb.ToString();
+    }
+}
+
+
 // Class V1DataArray derived from V1Data
 public class V1DataArray : V1Data
 {
@@ -261,6 +324,23 @@ public class V1MainCollection : List<V1Data>
         }
     }
 
+    public V1MainCollection() : base()
+    {
+        // Add one V1DataArray
+        double[] xArray = new[] { 0.0, 0.5, 1.0 };
+        V1DataArray dataArray = new("DataArrayKey", DateTime.Now, xArray, DataItemFunctions.FValueMethod);
+        this.Add(dataArray);
+
+        // Add one V1DataList
+        double[] xValues = new[] { 0.0, 0.25, 0.5, 0.75, 1.0 };
+        V1DataList dataList = new("DataListKey", DateTime.Now, xValues, DataItemFunctions.FDI_Method);
+        this.Add(dataList);
+
+        // Add one V1DDataList
+        V1DDataList dDataList = new("V1DDataListKey", DateTime.Now, xValues, DataItemFunctions.FDI_Method, DataItemFunctions.Fy3ValueMethod);
+        this.Add(dDataList);
+    }
+
     public override string ToString()
     {
         var sb = new StringBuilder();
@@ -296,6 +376,12 @@ public static class DataItemFunctions
         Complex y1 = new(Math.Cos(x), Math.Sin(x));
         Complex y2 = new(Math.Sin(x), Math.Cos(x));
         return new DataItem(x, y1, y2);
+    }
+
+    // From additional task
+    public static void Fy3ValueMethod(double x, ref Complex y3)
+    {
+        y3 = new Complex(Math.Tan(x), -Math.Tan(x));
     }
 }
 
@@ -362,5 +448,22 @@ internal static class Program
             Console.WriteLine($"Data with Key 'NonExistingKey' found: {dataWithKey}\n");
         else
             Console.WriteLine("Data with Key 'NonExistingKey' not found\n");
+
+        // From additional task
+        // 6. Create V1MainCollection object using parameterless constructor
+        mainCollection = new V1MainCollection();
+
+        AnsiConsole.MarkupLine($"[{Format}]V1MainCollection object:[/]");
+        Console.WriteLine(mainCollection.ToLongString("F2"));
+
+        // Output Count (xLength) and MinMaxDifference for each element
+        AnsiConsole.MarkupLine($"[{Format}]Properties of elements in V1MainCollection:[/]");
+        foreach (var data in mainCollection)
+        {
+            Console.WriteLine($"{data.GetType().Name} Key: {data.Key}");
+            Console.WriteLine($"xCount: {data.XLength}");
+            var minMaxDiff = data.MinMaxDifference;
+            Console.WriteLine($"Min Difference: {minMaxDiff.Item1:F2}, Max Difference: {minMaxDiff.Item2:F2}\n");
+        }
     }
 }
