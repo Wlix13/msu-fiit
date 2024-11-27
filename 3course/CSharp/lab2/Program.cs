@@ -133,7 +133,23 @@ public class V1DataList : V1Data
 
     public override IEnumerator<DataItem> GetEnumerator() =>
         DataItems.GetEnumerator();
+
+    public DataItem? ExtremeDataItem
+    {
+        get
+        {
+            if (DataItems == null || DataItems.Count == 0)
+                return null;
+
+            double averageMagnitude = DataItems.Average(item => item.Y1.Magnitude);
+            double maxDifference = DataItems.Max(item => Math.Abs(item.Y1.Magnitude - averageMagnitude));
+
+            const double tolerance = 1e-10;
+            return DataItems.Find(item => Math.Abs(Math.Abs(item.Y1.Magnitude - averageMagnitude) - maxDifference) < tolerance);
+        }
+    }
 }
+
 
 // Class V1DataArray derived from V1Data
 public class V1DataArray : V1Data
@@ -422,8 +438,8 @@ public static class DataItemFunctions
 
     public static DataItem FDI_Method(double x)
     {
-        Complex y1 = new(Math.Cos(x), Math.Sin(x));
-        Complex y2 = new(Math.Sin(x), Math.Cos(x));
+        Complex y1 = new(x, 0);
+        Complex y2 = new(-1, 1);
         return new DataItem(x, y1, y2);
     }
 }
@@ -440,6 +456,9 @@ internal static class Program
 
         Console.WriteLine("\nTesting LINQ Queries and IEnumerable<DataItem>:");
         TestLINQQueries();
+
+        Console.WriteLine("\nTesting Additional features:");
+        TestNewFeatures();
     }
 
     private static void TestSaveLoad()
@@ -511,5 +530,25 @@ internal static class Program
         }
         else
             Console.WriteLine("No x coordinates occurring in at least two datasets.");
+    }
+
+    private static void TestNewFeatures()
+    {
+        V1DataList dataList = new V1DataList("ExampleList", DateTime.Now, new double[] { 1.0, 2.0, 3.0 }, DataItemFunctions.FDI_Method);
+        DataItem? extremeItem = dataList.ExtremeDataItem;
+
+        Console.WriteLine("DataList:");
+        foreach (DataItem item in dataList)
+            Console.WriteLine(item.ToString(Format));
+
+        if (extremeItem.HasValue)
+        {
+            Console.WriteLine("Extreme DataItem:");
+            Console.WriteLine(extremeItem.Value.ToString("F2"));
+        }
+        else
+        {
+            Console.WriteLine("DataList is empty.");
+        }
     }
 }
